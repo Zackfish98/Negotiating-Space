@@ -1,0 +1,7 @@
+ultralytics
+pyyaml
+pandas
+matplotlib
+ipykernel
+pyproj
+shapely

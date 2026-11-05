@@ -1,0 +1,21 @@
+# See COMMIT_NOTES.md for what is and isn't committed, and why.
+
+# macOS / editor clutter
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+
+# YOLO weights: large (yolov8x-pose.pt is over GitHub's 100 MB limit);
+# Ultralytics downloads them automatically by name
+*.pt
+
+# Generated outputs: re-created by the Detection scripts.
+# Keep only the small calibration results that took manual work to get.
+Detection/Outputs/*
+!Detection/Outputs/H_C1.npy
+!Detection/Outputs/H_C1_calib_utm.npy
+!Detection/Outputs/study_area.geojson
+
+# Local secrets and environments
+.env
+.venv/

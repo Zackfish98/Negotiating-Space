@@ -1,0 +1,13 @@
+{
+  "crs": "EPSG:32632 (UTM 32N, meters)",
+  "points": [
+    {"name": "entry_drain_A", "pixel": [1676, 731], "ground": [465804.30, 5247069.58], "group": "drain", "use": "fit"},
+    {"name": "entry_drain_B", "pixel": [1752, 509], "ground": [465803.12, 5247073.61], "group": "drain", "use": "check"},
+    {"name": "entry_drain_C", "pixel": [1789, 398], "ground": [465801.88, 5247077.59], "group": "drain", "use": "fit"},
+    {"name": "entry_drain_D", "pixel": [1812, 331], "ground": [465800.60, 5247081.62], "group": "drain", "use": "fit"},
+    {"name": "exit_flat_A",   "pixel": [103, 414],  "ground": [465793.92, 5247066.64], "group": "flat",  "use": "fit"},
+    {"name": "exit_flat_B",   "pixel": [503, 333],  "ground": [465792.72, 5247070.68], "group": "flat",  "use": "check"},
+    {"name": "exit_flat_C",   "pixel": [752, 282],  "ground": [465791.49, 5247074.67], "group": "flat",  "use": "fit"},
+    {"name": "exit_flat_D",   "pixel": [938, 245],  "ground": [465790.29, 5247078.76], "group": "flat",  "use": "fit"}
+  ]
+}

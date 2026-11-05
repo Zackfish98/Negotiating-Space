@@ -1,0 +1,3 @@
+Flagging of observations that model is not confident on. 
+Question: What is the hand process of confirming or denying flag and how does that thread into training.
+Thinking go that my responses from the flag script then links back up to the individual behavioral "rule" in its own folder where when apply rule is rerun-prompted by flags to run again it pulls from the new input.

@@ -1,0 +1,6 @@
+data_dir: "/Volumes/Backup Drive/GSAPP Flash/wildtrack"
+dataset_root: "Wildtrack_dataset_full/Wildtrack_dataset"
+camera_dir: "Wildtrack_dataset_full/Wildtrack_dataset/Image_subsets/C1"
+calib_name: "CVLab1"
+view_num: 0
+output_dir: "Outputs"
