@@ -1,12 +1,23 @@
 import cv2
-import yaml
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # Negotiating-Space/
-config = yaml.safe_load(open(ROOT / "Data" / "Data_Config" / "paths.yaml"))
-frame = sorted((Path(config["data_dir"]) / config["camera_dir"]).glob("*.png"))[39]
+sys.path.insert(0, str(ROOT))
+from project_config import load_config
+
+# ---------- settings ----------
+FRAME_INDEX = 39  # which frame of the sequence to click on
+
+# ---------- paths ----------
+cfg = load_config()
+frame = sorted(cfg["frames_dir"].glob("*.png"))[FRAME_INDEX]
 
 img = cv2.imread(str(frame))
+ref_path = cfg["calib_dir"] / "reference_frame.png"
+if not ref_path.exists():  # keep the frame the points were picked on
+    cv2.imwrite(str(ref_path), img)
+    print(f"Saved {ref_path}")
 
 
 def click(event, x, y, flags, param):

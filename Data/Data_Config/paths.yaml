@@ -1,6 +1,4 @@
-data_dir: "/Volumes/Backup Drive/GSAPP Flash/wildtrack"
-dataset_root: "Wildtrack_dataset_full/Wildtrack_dataset"
-camera_dir: "Wildtrack_dataset_full/Wildtrack_dataset/Image_subsets/C1"
-calib_name: "CVLab1"
-view_num: 0
-output_dir: "Outputs"
+archive_root: ""                                   # master SSD (set when Zach has it)
+working_root: "/Volumes/Backup Drive/GSAPP Flash"  # portable working copies
+site: "wildtrack"                                  # which Data/Sites/<site>/ to use
+camera: "C1"                                       # which camera position

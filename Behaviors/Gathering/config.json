@@ -1,0 +1,9 @@
+{
+  "name": "gathering",
+  "type": "multi_person_rule",
+  "status": "not_deliberated",
+  "perception": ["detection", "tracking", "pose"],
+  "features_needed": [],
+  "builds_on": [],
+  "outputs": {"simplified": "rules.json", "neural": null}
+}

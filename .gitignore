@@ -9,12 +9,16 @@ __pycache__/
 # Ultralytics downloads them automatically by name
 *.pt
 
-# Generated outputs: re-created by the Detection scripts.
-# Keep only the small calibration results that took manual work to get.
-Detection/Outputs/*
-!Detection/Outputs/H_C1.npy
-!Detection/Outputs/H_C1_calib_utm.npy
-!Detection/Outputs/study_area.geojson
+# Generated per camera by the Detection scripts (regenerable).
+# Calibration files in Data/Sites/<site>/<cam>/ itself are tracked normally.
+Data/Sites/*/*/detections/
+Data/Sites/*/*/checks/
+
+# Test notebooks' own output folders
+Test/*/Outputs/
+
+# Files set aside for deletion
+_to_delete/
 
 # Local secrets and environments
 .env

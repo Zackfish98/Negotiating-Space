@@ -1,28 +1,36 @@
 from pathlib import Path
+import sys
 import json
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 import cv2
-import yaml
 import matplotlib.pyplot as plt
 from shapely.geometry import MultiPoint, Point, LineString, mapping
 
+ROOT = Path(__file__).resolve().parents[2]  # Negotiating-Space/
+sys.path.insert(0, str(ROOT))
+from project_config import load_config
+
 # ---------- settings ----------
-DETECTIONS_CSV = "detections_C1_yolov8m-pose.csv"
+TAG = "master"  # imported calibration is checked against ground truth -> the master
 POINTS_JSON = "homo_pick_points.json"
 BUFFER_M = 4.0
 GRID_STEP = 1.0
 
 # ---------- paths ----------
-DETECTION = Path(__file__).resolve().parents[1]  # Detection/
-CONFIG_DIR = DETECTION.parent / "Data" / "Data_Config"
-config = yaml.safe_load(open(CONFIG_DIR / "paths.yaml"))
-out_dir = DETECTION / config["output_dir"]
-root = Path(config["data_dir"]) / config["dataset_root"]
-frames_dir = Path(config["data_dir"]) / config["camera_dir"]
-cam, view = config["calib_name"], config["view_num"]
-pts = json.load(open(CONFIG_DIR / POINTS_JSON))["points"]
+cfg = load_config()
+cam = cfg["camera"]  # camera id, e.g. C1
+calib_dir = cfg["calib_dir"]  # calibration artifacts (H, study area)
+out_dir = cfg["detections_dir"]  # detection-derived data (Data/Sites/<site>/<cam>/detections)
+checks_dir = cfg["checks_dir"]  # check images (Data/Sites/<site>/<cam>/checks)
+root = cfg["dataset_root"]
+frames_dir = cfg["frames_dir"]
+calib_name, view = cfg["calib_name"], cfg["view_num"]  # dataset's calibration file name, e.g. CVLab1
+if not calib_name or calib_name == "TODO":
+    raise SystemExit(f"Set calib_name for camera {cam} in {cfg['site_dir'] / 'site.json'}")
+DETECTIONS_CSV = f"detections_{cam}_yolov8m-pose.csv"
+pts = json.load(open(calib_dir / POINTS_JSON))["points"]
 
 
 def transform(xy, M):
@@ -38,10 +46,10 @@ def read_numbers(path, tag):
 
 
 K = read_numbers(
-    root / "calibrations/intrinsic_zero" / f"intr_{cam}.xml", "camera_matrix"
+    root / "calibrations/intrinsic_zero" / f"intr_{calib_name}.xml", "camera_matrix"
 ).reshape(3, 3)
-rvec = read_numbers(root / "calibrations/extrinsic" / f"extr_{cam}.xml", "rvec")
-tvec = read_numbers(root / "calibrations/extrinsic" / f"extr_{cam}.xml", "tvec")
+rvec = read_numbers(root / "calibrations/extrinsic" / f"extr_{calib_name}.xml", "rvec")
+tvec = read_numbers(root / "calibrations/extrinsic" / f"extr_{calib_name}.xml", "tvec")
 R, _ = cv2.Rodrigues(rvec)
 
 H_ground_to_img = K @ np.column_stack([R[:, 0], R[:, 1], tvec])  # ground (cm) -> pixels
@@ -124,7 +132,7 @@ S[:2, :2] = Rm
 S[:2, 2] = t
 H = S @ H_calib
 H_inv = np.linalg.inv(H)
-np.save(out_dir / "H_C1_calib_utm.npy", H)
+np.save(calib_dir / f"H_{cam}_{TAG}.npy", H)
 
 aligned = local_pts @ Rm.T + t
 print("How far each Google Earth placemark is from its true position:")
@@ -170,16 +178,17 @@ g = transform(df[["foot_x", "foot_y"]].values, H)
 df["ground_x"], df["ground_y"] = g[:, 0], g[:, 1]
 df["in_study_area"] = [study_area.contains(Point(x, y)) for x, y in g]
 inside = df[df["in_study_area"]]
-df.to_csv(out_dir / "detections_C1_ground_all.csv", index=False)
-inside.to_csv(out_dir / "detections_C1_study_area.csv", index=False)
+df.to_csv(out_dir / f"detections_{cam}_ground_all_{TAG}.csv", index=False)
+inside.to_csv(out_dir / f"detections_{cam}_study_area_{TAG}.csv", index=False)
 print(
     f"{len(inside)} of {len(df)} detections inside "
     f"(avg {len(inside) / df['frame'].nunique():.1f} people per frame)"
 )
 
-# ================= 5. GeoJSON (UTM 32N) =================
-crs = {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::32632"}}
-with open(out_dir / "study_area.geojson", "w") as f:
+# ================= 5. GeoJSON (site CRS) =================
+epsg = cfg["crs"].split(":")[-1]
+crs = {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::" + epsg}}
+with open(calib_dir / f"study_area_{TAG}.geojson", "w") as f:
     json.dump(
         {
             "type": "FeatureCollection",
@@ -193,13 +202,13 @@ with open(out_dir / "study_area.geojson", "w") as f:
                 {
                     "type": "Feature",
                     "geometry": {"type": "Point", "coordinates": cam_utm.tolist()},
-                    "properties": {"name": "camera C1"},
+                    "properties": {"name": f"camera {cam}"},
                 },
             ],
         },
         f,
     )
-with open(out_dir / "detections_C1_study_area.geojson", "w") as f:
+with open(out_dir / f"detections_{cam}_study_area_{TAG}.geojson", "w") as f:
     json.dump(
         {
             "type": "FeatureCollection",
@@ -271,7 +280,7 @@ for p in pts:
 for r in df[df["frame"] == 0].itertuples():
     color = (0, 255, 0) if r.in_study_area else (128, 128, 128)
     cv2.circle(img, (int(r.foot_x), int(r.foot_y)), 6, color, -1)
-cv2.imwrite(str(out_dir / "check_study_area_camera.jpg"), img)
+cv2.imwrite(str(checks_dir / f"check_study_area_camera_{TAG}.jpg"), img)
 
 # ---- 6b. plan view (north up, local meters, 1 m grid, camera) ----
 L = lambda xy: np.asarray(xy) - origin
@@ -317,7 +326,7 @@ ax.scatter(
     label="people (feet, every frame)",
 )
 cam_l, centre = L(cam_utm), L(np.array(study_area.centroid.coords[0]))
-ax.scatter(*cam_l, marker="^", s=120, c="black", zorder=4, label="camera C1")
+ax.scatter(*cam_l, marker="^", s=120, c="black", zorder=4, label=f"camera {cam}")
 ax.annotate(
     "", xy=centre, xytext=cam_l, arrowprops=dict(arrowstyle="->", color="grey", lw=1)
 )
@@ -342,7 +351,8 @@ ax.annotate(
 ax.set_aspect("equal")
 ax.set_xlabel("meters east")
 ax.set_ylabel("meters north")
-ax.set_title("C1 study area — plan view (north up, 1 m grid)")
+ax.set_title(f"{cam} study area — plan view (north up, 1 m grid, {TAG})")
 ax.legend(loc="lower left", fontsize=8)
-fig.savefig(out_dir / "check_study_area_plan.png", dpi=150)
-print("Saved check_study_area_camera.jpg and check_study_area_plan.png")
+fig.savefig(checks_dir / f"check_study_area_plan_{TAG}.png", dpi=150)
+print(f"Saved H_{cam}_{TAG}.npy and study_area_{TAG}.geojson to {calib_dir}")
+print(f"Saved check_study_area_camera_{TAG}.jpg and check_study_area_plan_{TAG}.png to {checks_dir}")

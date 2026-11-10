@@ -1,0 +1,9 @@
+{
+  "name": "traveling_through",
+  "type": "rule",
+  "status": "not_deliberated",
+  "perception": ["detection", "tracking"],
+  "features_needed": [],
+  "builds_on": [],
+  "outputs": {"simplified": "rules.json", "neural": null}
+}

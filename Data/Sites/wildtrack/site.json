@@ -1,0 +1,11 @@
+{
+  "site": "wildtrack",
+  "description": "WILDTRACK multi-camera dataset, ETH Zurich plaza. Test sample.",
+  "crs": "EPSG:32632",
+  "dataset_root": "wildtrack/Wildtrack_dataset_full/Wildtrack_dataset",
+  "frames_subdir": "Image_subsets/{camera}",
+  "cameras": {
+    "C1": {"calib_name": "CVLab1", "view_num": 0},
+    "C6": {"calib_name": "IDIAP2", "view_num": 5, "notes": "WILDTRACK order: C1-C4 = CVLab1-4, C5-C7 = IDIAP1-3"}
+  }
+}

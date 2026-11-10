@@ -1,0 +1,9 @@
+{
+  "name": "sitting",
+  "type": "learned",
+  "status": "not_deliberated",
+  "perception": ["pose"],
+  "features_needed": [],
+  "builds_on": [],
+  "outputs": {"simplified": "rules.json", "neural": "model.pt"}
+}
